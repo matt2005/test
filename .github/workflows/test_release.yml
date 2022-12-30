@@ -180,7 +180,10 @@ jobs:
         with:
           generate_release_notes: true
           name: ${{ steps.get_version.outputs.version }}
+          tag_name: ${{ steps.get_version.outputs.version }}
           files: opendsh-${{ steps.get_version.outputs.version }}.zip
+          append_body: true
+          draft: true
       - 
         name: Get File Hashes from files
         id: filehashes
