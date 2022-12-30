@@ -46,15 +46,15 @@ jobs:
               osname: "bullseye",
               ostype: "Debian"
             }
-          - {
-              name: "Debian bullseye armhf",
-              basefile: "base_bullseye_armhf",
-              compilefile: "compile_bullseye_armhf",
-              finalfile: "final_bullseye_armhf",
-              arch: "armhf",
-              osname: "bullseye",
-              ostype: "Debian"
-            }
+#         - {
+#             name: "Debian bullseye armhf",
+#             basefile: "base_bullseye_armhf",
+#             compilefile: "compile_bullseye_armhf",
+#             finalfile: "final_bullseye_armhf",
+#             arch: "armhf",
+#             osname: "bullseye",
+#             ostype: "Debian"
+#           }
     name: 'Build:  ${{ matrix.config.name }}'
     steps:
       - 
@@ -76,7 +76,7 @@ jobs:
           osname: ${{ matrix.config.osname }}
       - 
         name: Create Base Image
-        uses: Nature40/pimod@v0.3.0
+        uses: Nature40/pimod@v0.6.0
         with:
           pifile: ${{ matrix.config.basefile }}.Pifile
       - 
@@ -143,12 +143,12 @@ jobs:
               osname: "bullseye",
               ostype: "Debian"
             }
-          - {
-              name: "Debian bullseye armhf",
-              arch: "armhf",
-              osname: "bullseye",
-              ostype: "Debian"
-            }
+#          - {
+#              name: "Debian bullseye armhf",
+#              arch: "armhf",
+#              osname: "bullseye",
+#              ostype: "Debian"
+#            }
     name: 'Upload release:  ${{ matrix.config.name }}'
     steps:
       - 
