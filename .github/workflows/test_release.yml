@@ -19,9 +19,9 @@ jobs:
           if [ -z "$version" ]
           then
                 version=$(date '+%Y%m%d')
-                echo ::set-output name=version::"${version}"
+                echo version="${version}" >> $GITHUB_OUTPUT
           else
-                echo ::set-output name=version::"${version}"
+                echo version="${version}" >> $GITHUB_OUTPUT
           fi
         env:
           version: ${{ github.event.inputs.version }}
@@ -59,7 +59,7 @@ jobs:
     steps:
       - 
         name: Checkout repository
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3.2.0
       - 
         name: Get the version
         id: get_version
@@ -68,7 +68,7 @@ jobs:
           then 
                 osname=${ostype}_${osname}
           fi
-          echo ::set-output name=version::"${version}-${osname}-${arch}"
+          echo version="${version}-${osname}-${arch}" >> $GITHUB_OUTPUT
         env:
           version: ${{needs.version.outputs.version }}
           arch: ${{ matrix.config.arch }}
@@ -93,13 +93,13 @@ jobs:
           sha256sum "${IMG_FILENAME}" > "${SHA256HASHFILE}"
           zip "${ZIP_FILENAME}" "${IMG_FILENAME}" "${SHA256HASHFILE}"
           md5sum "${ZIP_FILENAME}" > "${MD5ZIPHASHFILE}"
-          echo ::set-output name=ZIP_FILENAME::"${ZIP_FILENAME}"
-          echo ::set-output name=SHA256HASHFILE::"${SHA256HASHFILE}"
-          echo ::set-output name=MD5ZIPHASHFILE::"${MD5ZIPHASHFILE}"
+          echo ZIP_FILENAME="${ZIP_FILENAME}" >> $GITHUB_OUTPUT
+          echo SHA256HASHFILE="${SHA256HASHFILE}" >> $GITHUB_OUTPUT
+          echo MD5ZIPHASHFILE="${MD5ZIPHASHFILE}" >> $GITHUB_OUTPUT
       - 
         name: Upload build artifacts 
         id: upload_deploy
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.get_version.outputs.version }}
           path: |
@@ -111,6 +111,11 @@ jobs:
     needs: [ version, build ]
     name: 'Create release'
     outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      release_name: ${{ steps.create_release.outputs.name }}
+      release_tag_name: ${{ steps.create_release.outputs.tag_name }}
+      release_body: ${{ steps.create_release.outputs.body }}
+      release_html_url: ${{ steps.create_release.outputs.html_url }}
       release_upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
     steps:
       - 
@@ -154,7 +159,7 @@ jobs:
           then 
                 osname=${ostype}_${osname}
           fi
-          echo ::set-output name=version::"${version}-${osname}-${arch}"
+          echo version="${version}-${osname}-${arch}" >> $GITHUB_OUTPUT
         env:
           version: ${{needs.version.outputs.version }}
           arch: ${{ matrix.config.arch }}
@@ -162,21 +167,20 @@ jobs:
           ostype: ${{ matrix.config.ostype }}
       - 
         name: Download build artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ steps.get_version.outputs.version }}
       - 
         name: Upload zip to release
         id: upload_zip
-        uses: actions/upload-release-asset@v1.0.2
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_VERSION: ${{ steps.get_version.outputs.version }}
         with:
-          upload_url: ${{needs.release.outputs.release_upload_url}}
-          asset_path: opendsh-${{ steps.get_version.outputs.version }}.zip
-          asset_name: opendsh-${{ steps.get_version.outputs.version }}.zip
-          asset_content_type: application/zip
+          generate_release_notes: true
+          name: ${{ steps.get_version.outputs.version }}
+          files: opendsh-${{ steps.get_version.outputs.version }}.zip
       - 
         name: Get File Hashes from files
         id: filehashes
@@ -185,8 +189,8 @@ jobs:
           MD5_ZIPHASHFILE="${ZIP_FILENAME}.md5"
           MD5_ZIPHASH="cat ${MD5_ZIPHASHFILE}"
           echo ${MD5_ZIPHASH}
-          echo ::set-output name=ZIP_FILENAME::"${ZIP_FILENAME}"
-          echo ::set-output name=MD5_ZIPHASH::"${MD5_ZIPHASH}"
+          echo ZIP_FILENAME="${ZIP_FILENAME}" >> $GITHUB_OUTPUT
+          echo MD5_ZIPHASH="${MD5_ZIPHASH}" >> $GITHUB_OUTPUT
 #      - 
 #        name: Update GitHub Release
 #        id: add-file-hashes-to-release
