@@ -2,6 +2,9 @@ name: Build Images
 
 on:
   push:
+    branches:
+      - main
+      - 'releases/**'
   workflow_dispatch:
     inputs:
       version:
@@ -174,9 +177,6 @@ jobs:
         name: Upload zip to release
         id: upload_zip
         uses: softprops/action-gh-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: ${{ steps.get_version.outputs.version }}
         with:
           generate_release_notes: true
           name: ${{ steps.get_version.outputs.version }}
